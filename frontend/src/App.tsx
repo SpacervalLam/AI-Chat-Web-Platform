@@ -23,43 +23,42 @@ const App: React.FC = () => {
     messagesRef.current = messages;
   }, [messages]);
 
-  const handleSend = async (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
-    const userMsg: ChatMessage = { role: 'user', content: message, timestamp };
+const handleSend = async (message: string) => {
+  const timestamp = new Date().toLocaleTimeString();
+  const userMsg: ChatMessage = { role: 'user', content: message, timestamp };
 
-    // Update state and wait for it to complete
-    await new Promise<void>(resolve => {
-      setMessages(prev => {
-        const newMessages = [...prev, userMsg];
-        resolve();
-        return newMessages;
-      });
-    });
-    setIsDisabled(true);
+  // 立即更新 messagesRef.current
+  const newMessages = [...messagesRef.current, userMsg];
+  messagesRef.current = newMessages;
+  setMessages(newMessages);
+  setIsDisabled(true);
 
-    try {
-      const fullHistory = messagesRef.current;
-      const response = await sendChatCompletion(fullHistory, model);
+  try {
+    const response = await sendChatCompletion(messagesRef.current, model);
 
-      const assistantMsg: ChatMessage = {
-        role: 'assistant',
-        content: response.response,
-        timestamp: new Date().toLocaleTimeString(),
-      };
+    const assistantMsg: ChatMessage = {
+      role: 'assistant',
+      content: response.response,
+      timestamp: new Date().toLocaleTimeString(),
+    };
 
-      setMessages(prev => [...prev, assistantMsg]);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMsg: ChatMessage = {
-        role: 'assistant',
-        content: 'Error: Unable to fetch response.',
-        timestamp: new Date().toLocaleTimeString(),
-      };
-      setMessages(prev => [...prev, errorMsg]);
-    } finally {
-      setIsDisabled(false);
-    }
-  };
+    // 更新 messagesRef.current 和状态
+    messagesRef.current = [...messagesRef.current, assistantMsg];
+    setMessages(messagesRef.current);
+  } catch (error) {
+    console.error('Error sending message:', error);
+    const errorMsg: ChatMessage = {
+      role: 'assistant',
+      content: 'Error: Unable to fetch response.',
+      timestamp: new Date().toLocaleTimeString(),
+    };
+    messagesRef.current = [...messagesRef.current, errorMsg];
+    setMessages(messagesRef.current);
+  } finally {
+    setIsDisabled(false);
+  }
+};
+
 
   useEffect(() => {
     if (chatContainerRef.current) {

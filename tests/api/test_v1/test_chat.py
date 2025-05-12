@@ -4,15 +4,29 @@ from app.main import app
 
 client = TestClient(app)
 
-def test_chat_endpoint():
-    response = client.get("/api/v1/chat")
+def test_list_models():
+    response = client.get("/api/v1/models")
     assert response.status_code == 200
-    assert response.json() == {"message": "Chat endpoint"}
+    assert "models" in response.json()
 
-def test_chat_post_message():
+def test_chat_completion():
     response = client.post(
-        "/api/v1/chat",
-        json={"message": "Hello"}
+        "/api/v1/completions",
+        json={
+            "messages": [{"role": "user", "content": "Hello"}],
+            "model": "llama2"
+        }
     )
     assert response.status_code == 200
     assert "response" in response.json()
+
+def test_chat_stream():
+    response = client.post(
+        "/api/v1/completions/stream",
+        json={
+            "messages": [{"role": "user", "content": "Hello"}],
+            "model": "llama2"
+        }
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "text/event-stream"

@@ -1,15 +1,9 @@
 from pydantic import BaseModel
-from typing import Optional
-from typing import List
-
-class ChatMessage(BaseModel):
-    role: str  # e.g., "user" or "assistant"
-    content: str
+from typing import List, Optional
 
 class ChatRequest(BaseModel):
-    messages: List[ChatMessage]
-    model: Optional[str] = "llama2"
-    stream: Optional[bool] = False
+    model: Optional[str] = None
+    messages: List[dict] 
 
 class ChatResponse(BaseModel):
     message: str

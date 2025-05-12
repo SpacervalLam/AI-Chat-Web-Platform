@@ -25,9 +25,10 @@ export interface ChatResponse {
   model: string;
 }
 
+/*
 export const getModels = async (): Promise<string[]> => {
   try {
-    const response = await api.get<{ models: string[] }>('/api/v1/model');
+    const response = await api.get<{ models: string[] }>('/chat/models');
     return response.data.models;
   } catch (error) {
     console.error('Error fetching models:', error);
@@ -37,26 +38,26 @@ export const getModels = async (): Promise<string[]> => {
 
 export const sendMessage = async (messages: ChatMessage[], model: string) => {
   try {
-    const response = await api.post('/api/v1/chat', {
-      messages,
+    const response = await api.post('/chat', {
+      messages, // 发送消息列表
       model,
       stream: false,
     });
     return response.data;
   } catch (error) {
     console.error('Error sending message:', error);
-    throw error;
+    throw error;  
   }
 };
 
 export const streamMessage = async (messages: ChatMessage[], model: string) => {
   try {
-    const response = await api.post('/api/v1/chat/stream', {
-      messages,
+    const response = await api.post('/chat/stream', {
+      messages, // 发送消息列表
       model,
       stream: true,
     }, {
-      responseType: 'stream',
+      responseType: 'stream', // 用于流式响应
     });
     return response.data;
   } catch (error) {
@@ -64,6 +65,7 @@ export const streamMessage = async (messages: ChatMessage[], model: string) => {
     throw error;
   }
 };
+*/
 
 export const sendChatCompletion = async (
   messages: ChatMessage[],

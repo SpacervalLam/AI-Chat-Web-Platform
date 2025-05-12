@@ -4,6 +4,7 @@ from app.core.ollama_client import OllamaClient
 from app.schemas.chat import ChatRequest
 from typing import AsyncGenerator
 import json
+import traceback
 
 router = APIRouter()
 ollama = OllamaClient()
@@ -14,7 +15,7 @@ async def list_models():
         models = await ollama.list_models()
         return {"models": models}
     except Exception as e:
-        print(f"Error fetching models: {e}")  
+        print(f"Error fetching models: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch models")
 
 @router.post("/completions")
@@ -25,43 +26,45 @@ async def chat(request: ChatRequest):
         if not request.messages:
             raise HTTPException(status_code=400, detail="Messages array cannot be empty")
 
-        model = request.model or "llama2"
-        prompt = request.messages[0].content if request.messages else ""
-        print(f"[DEBUG] Using model: {model}, Prompt: {prompt}")
+        model = request.model
+        print(f"[DEBUG] Using model: {model}")
 
-        response = await ollama.generate(
+        response_data = ""
+        async for chunk in ollama.chat(
             model=model,
-            prompt=prompt,
+            messages=request.messages,
             stream=False
-        )
+        ):
+            print(f"[DEBUG] Chunk response: {chunk.response}")  # 添加调试日志
+            response_data += chunk.response or ""
 
-        print(f"[DEBUG] Generated response: {response}")
-
-        return {"response": response.response, "model": model}
+        return {"response": response_data, "model": model}
     except Exception as e:
-
         import traceback
-        error_details = traceback.format_exc()
-        print(f"[ERROR] Error during chat    generation: {e}\n{error_details}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate response: {str(e)}")
-    finally:
-        print("[DEBUG] Chat endpoint execution completed.")
+        print(f"[ERROR] Error during chat generation: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Failed to generate response")
+
 
 @router.post("/completions/stream")
 async def chat_stream(request: ChatRequest):
     async def generate_chat_stream(request: ChatRequest) -> AsyncGenerator[str, None]:
         try:
-            model = request.model or "llama2"  
-            async for chunk in ollama.generate_stream(
+            model = request.model
+
+            async for chunk in ollama.chat(
                 model=model,
-                prompt=request.message
+                messages=request.messages,
+                stream=True
             ):
                 yield f"data: {json.dumps({'response': chunk.response, 'model': model})}\n\n"
+
         except Exception as e:
-            print(f"Error during stream generation: {e}") 
+            import traceback
+            print(f"[ERROR] Error during stream generation: {e}\n{traceback.format_exc()}")
             yield f"data: {json.dumps({'error': 'Failed to generate response'})}\n\n"
 
     return StreamingResponse(
         generate_chat_stream(request),
         media_type="text/event-stream"
     )
+
