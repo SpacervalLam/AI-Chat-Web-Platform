@@ -1,15 +1,5 @@
 🚧 Still a WIP! Any cool bro wanna polish it up? I'd be mega happy! (≧▽≦)
 
-
-### 🚧 Current Issue
-
-In `App.tsx`, within the `handleSend` function, the `messages` state is updated using `setMessages`. However, since state updates in React are asynchronous, the latest `messages` may not be immediately available when `sendChatCompletion` is called right after.
-This might be the reason why the most recent user message isn't being included in the request.
-
-See:
-![Image 1](./img/image1.png)
-![Image 2](./img/image2.png)
-
 > *This is a tentative assumption and needs further validation.*
 
 # My Platform
