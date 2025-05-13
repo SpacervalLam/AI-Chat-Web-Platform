@@ -1,10 +1,12 @@
 🚧 Still a WIP! Any cool bro wanna polish it up? I'd be mega happy! (≧▽≦)
 
-> *This is a tentative assumption and needs further validation.*
 
-# My Platform
+# AI Chat Web Platform
 
-This is a full-stack application with backend and frontend components, designed to provide interactive functionality with chat models.
+This is a full-stack application with backend and frontend components, designed to provide UI for interactive functionality with chat models.
+
+![image1](./img/img1.png)
+![image2](./img/img2.gif)
 
 ## Features Overview
 - **Backend**: RESTful API built with FastAPI, supporting model listing and chat functionality.
