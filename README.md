@@ -74,37 +74,7 @@ The frontend runs by default at `http://localhost:5173`.
   "model": "gpt-3.5",
   "stream": false
 }
-```
-
-## Testing
-- Backend tests are located in `tests/api/test_v1/`.
-- Run backend tests: `pytest tests/`
-
-## Project Structure
-```
-My-Platform/
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── v1/
-│   │   │       └── endpoints/
-│   │   ├── core/
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   └── services/
-│   ├── database.db
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── services/
-│   │   └── main.tsx
-│   ├── package.json
-│   └── tailwind.config.js
-└── tests/
-    └── api/
-        └── test_v1/
-```
+``
 
 ## Contribution
 Feel free to submit issues and contribute to the code!
