@@ -1,40 +1,51 @@
+// frontend/src/components/ChatBox/ChatBubble.tsx
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import '../../App.css';
 
 interface ChatBubbleProps {
-  message: string;
   sender: 'user' | 'assistant';
-  timestamp: string; // 添加时间戳属性
+  message: string;
+  thoughts?: string;
+  timestamp: string;
 }
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ message, sender, timestamp }) => {
-  const [showThoughts, setShowThoughts] = useState(false); // 控制思维链显示状态
-
+const ChatBubble: React.FC<ChatBubbleProps> = ({ message, thoughts, sender, timestamp }) => {
+  const [showThoughts, setShowThoughts] = useState(false);
   const isUser = sender === 'user';
   const bubbleClass = isUser
     ? 'bg-blue-500 text-white dark:bg-blue-700'
     : 'bg-gray-200 text-black dark:bg-gray-600 dark:text-white';
   const alignClass = isUser ? 'justify-end' : 'justify-start';
 
-  // 提取思维链信息和实际消息
-  const thoughtMatch = message.match(/<think>([\s\S]*?)<\/think>/);
-  const thoughts = thoughtMatch ? thoughtMatch[1].trim() : null;
-  const displayMessage = message.replace(/<think>[\s\S]*?<\/think>/, '').trim();
+  const toggleThoughts = () => setShowThoughts(prev => !prev);
 
   return (
     <div className={`flex ${alignClass} mb-2`}>
       <div className="flex flex-col max-w-xs">
+        {/* 思维链区域：透明背景 & 边框 */}
         {thoughts && showThoughts && (
-          <div className="mb-1 p-2 bg-yellow-100 text-black rounded-md">
-            <strong>Thought:</strong>
-            <p>{thoughts}</p>
+          <div
+            className="
+              mb-1 p-2
+              bg-transparent
+              border border-gray-300 dark:border-gray-600
+              rounded-md
+              cursor-pointer
+            "
+            onClick={toggleThoughts}
+          >
+            <strong className="text-gray-700 dark:text-gray-200">Thought:</strong>
+            <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-100">
+              {thoughts}
+            </p>
           </div>
         )}
+        {/* 对话气泡 */}
         <div
-          className={`px-4 py-2 rounded-lg ${bubbleClass}`}
-          onClick={() => setShowThoughts(!showThoughts)} // 点击切换显示状态
+          className={`px-4 py-2 rounded-lg ${bubbleClass} cursor-pointer`}
+          onClick={thoughts ? toggleThoughts : undefined}
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -42,10 +53,12 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, sender, timestamp }) =
               p: ({ node, ...props }) => <p style={{ whiteSpace: 'pre-wrap' }} {...props} />,
             }}
           >
-            {displayMessage}
+            {message}
           </ReactMarkdown>
         </div>
-        <span className="text-xs text-gray-500 mt-1 self-end">{timestamp}</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 self-end">
+          {timestamp}
+        </span>
       </div>
     </div>
   );

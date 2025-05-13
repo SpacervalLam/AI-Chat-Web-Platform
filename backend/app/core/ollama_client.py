@@ -1,7 +1,10 @@
-import httpx
+from httpx import AsyncClient, Timeout
+
 from typing import AsyncGenerator, Literal, List, Optional
 from pydantic import BaseModel
 import json
+
+
 
 class Message(BaseModel):
     role: Literal["system", "user", "assistant"]
@@ -36,7 +39,8 @@ class OllamaGenerateResponse(BaseModel):
 class OllamaClient:
     def __init__(self, base_url: str = "http://localhost:11434"):
         self.base_url = base_url
-        self.client = httpx.AsyncClient()
+        self.timeout = Timeout(connect=None, read=None, write=None, pool=None)
+        self.client = AsyncClient(timeout=self.timeout)
 
     async def list_models(self) -> List[str]:
         """Fetch available model tags from Ollama service."""

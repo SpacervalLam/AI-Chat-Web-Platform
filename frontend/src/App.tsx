@@ -1,3 +1,4 @@
+// frontend/src/App.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import ChatBubble from './components/ChatBox/ChatBubble';
 import ChatInput from './components/ChatBox/ChatInput';
@@ -9,6 +10,7 @@ import './App.css';
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  thoughts?: string;
   timestamp?: string;
 }
 
@@ -23,42 +25,47 @@ const App: React.FC = () => {
     messagesRef.current = messages;
   }, [messages]);
 
-const handleSend = async (message: string) => {
-  const timestamp = new Date().toLocaleTimeString();
-  const userMsg: ChatMessage = { role: 'user', content: message, timestamp };
+  const handleSend = async (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    // 用户消息无需 thoughts
+    const userMsg: ChatMessage = { role: 'user', content: message, timestamp };
+    const newMessages = [...messagesRef.current, userMsg];
+    messagesRef.current = newMessages;
+    setMessages(newMessages);
+    setIsDisabled(true);
 
-  // 立即更新 messagesRef.current
-  const newMessages = [...messagesRef.current, userMsg];
-  messagesRef.current = newMessages;
-  setMessages(newMessages);
-  setIsDisabled(true);
+    try {
+      const response = await sendChatCompletion(messagesRef.current, model);
+      const raw = response.response;
 
-  try {
-    const response = await sendChatCompletion(messagesRef.current, model);
+      // 用正则提取 <think>…</think> 内容
+      const thinkMatch = raw.match(/<think>([\s\S]*?)<\/think>/);
+      const thoughts = thinkMatch ? thinkMatch[1].trim() : undefined;
+      // 去掉标签后剩余的显示文本
+      const content = raw.replace(/<think>[\s\S]*?<\/think>/, '').trim();
 
-    const assistantMsg: ChatMessage = {
-      role: 'assistant',
-      content: response.response,
-      timestamp: new Date().toLocaleTimeString(),
-    };
+      const assistantMsg: ChatMessage = {
+        role: 'assistant',
+        content,
+        thoughts,
+        timestamp: new Date().toLocaleTimeString(),
+      };
 
-    // 更新 messagesRef.current 和状态
-    messagesRef.current = [...messagesRef.current, assistantMsg];
-    setMessages(messagesRef.current);
-  } catch (error) {
-    console.error('Error sending message:', error);
-    const errorMsg: ChatMessage = {
-      role: 'assistant',
-      content: 'Error: Unable to fetch response.',
-      timestamp: new Date().toLocaleTimeString(),
-    };
-    messagesRef.current = [...messagesRef.current, errorMsg];
-    setMessages(messagesRef.current);
-  } finally {
-    setIsDisabled(false);
-  }
-};
-
+      messagesRef.current = [...messagesRef.current, assistantMsg];
+      setMessages(messagesRef.current);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMsg: ChatMessage = {
+        role: 'assistant',
+        content: 'Error: Unable to fetch response.',
+        timestamp: new Date().toLocaleTimeString(),
+      };
+      messagesRef.current = [...messagesRef.current, errorMsg];
+      setMessages(messagesRef.current);
+    } finally {
+      setIsDisabled(false);
+    }
+  };
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -93,6 +100,7 @@ const handleSend = async (message: string) => {
               key={idx}
               sender={msg.role}
               message={msg.content}
+              thoughts={msg.thoughts}
               timestamp={msg.timestamp || ''}
             />
           ))
